@@ -1,0 +1,79 @@
+// manifest.json
+{
+  "manifest_version": 3,
+  "name": "Time Tracker & Productivity Analytics",
+  "version": "1.0",
+  "description": "Tracks time spent on different websites and provides productivity analytics.",
+  "permissions": ["tabs", "storage", "activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "icons": {
+    "48": "icon.png"
+  }
+}
+
+// background.js
+let activeTabId = null;
+let currentStartTime = null;
+
+chrome.tabs.onActivated.addListener(activeInfo => {
+  trackTime();
+  activeTabId = activeInfo.tabId;
+  currentStartTime = Date.now();
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (tab.active && changeInfo.status === 'complete') {
+    trackTime();
+    activeTabId = tabId;
+    currentStartTime = Date.now();
+  }
+});
+
+function trackTime() {
+  if (!activeTabId || !currentStartTime) return;
+  const duration = Date.now() - currentStartTime;
+
+  chrome.tabs.get(activeTabId, tab => {
+    const domain = new URL(tab.url).hostname;
+    chrome.storage.local.get([domain], result => {
+      const previousTime = result[domain] || 0;
+      chrome.storage.local.set({ [domain]: previousTime + duration });
+    });
+  });
+}
+
+// popup.html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Time Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 10px; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { padding: 5px; border: 1px solid #ccc; }
+  </style>
+</head>
+<body>
+  <h2>Website Usage</h2>
+  <table id="usageTable">
+    <tr><th>Website</th><th>Time (min)</th></tr>
+  </table>
+  <script src="popup.js"></script>
+</body>
+</html>
+
+// popup.js
+chrome.storage.local.get(null, data => {
+  const table = document.getElementById('usageTable');
+  Object.entries(data).forEach(([domain, ms]) => {
+    const row = document.createElement('tr');
+    row.innerHTML = `<td>${domain}</td><td>${(ms / 60000).toFixed(2)}</td>`;
+    table.appendChild(row);
+  });
+});
