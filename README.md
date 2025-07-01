@@ -25,4 +25,5 @@ Whether you're a student, freelancer, remote worker, or just someone trying to b
 One of the biggest advantages of this extension is that it’s open-source. Users can clone the project, customize the code, and even host the backend on their own server for full control over their data. Additional features like Pomodoro timers, idle detection, or CSV export can be added based on specific needs. This makes the extension not only powerful out of the box but also highly adaptable for long-term use.
 
 #OUTPUT:
+https://github.com/user-attachments/assets/68d4e7e3-302f-47d0-8328-f9fa35bf0f93
 
